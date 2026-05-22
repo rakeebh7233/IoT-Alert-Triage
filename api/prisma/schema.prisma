@@ -42,7 +42,7 @@ model SensorReading {
 model Alert {
   id           Int     @id @default(autoincrement())
   deviceId     String
-  timestampUtc BigInt
+  timestampUtc DateTime
   alertType    String
   severity     String
   threshold    Float?
