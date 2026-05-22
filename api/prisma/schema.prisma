@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Device {
+  id              String   @id
+  name            String
+  type            String
+  company         String
+  timezone        String
+  location        String
+  installedDate   DateTime
+  floorCount      Int?
+  readingTypes    Json
+  alertThresholds Json
+
+  readings SensorReading[]
+  alerts   Alert[]
+
+  @@map("devices")
+}
+
+model SensorReading {
+  id                Int      @id @default(autoincrement())
+  deviceId          String
+  timestampUtc      DateTime
+  inputName         String
+  inputValue        Float
+  breachesThreshold Boolean  @default(false)
+  isDuplicate       Boolean  @default(false)
+
+  device Device @relation(fields: [deviceId], references: [id])
+
+  @@index([deviceId, timestampUtc])
+  @@map("sensor_readings")
+}
+
+model Alert {
+  id           Int     @id @default(autoincrement())
+  deviceId     String
+  timestampUtc BigInt
+  alertType    String
+  severity     String
+  threshold    Float?
+  readingValue Float?
+  readingName  String?
+
+  device   Device               @relation(fields: [deviceId], references: [id])
+  triage   AlertTriage?
+  timeline AlertTimelineEntry[]
+
+  @@map("alerts")
+}
+
+model AlertTriage {
+  id                           Int       @id @default(autoincrement())
+  alertId                      Int       @unique
+  status                       String    @default("new")
+  assignedTo                   String?
+  acknowledgedAt               DateTime?
+  resolvedAt                   DateTime?
+  resolutionType               String?
+  resolutionRootCause          String?
+  resolutionActionTaken        String?
+  resolutionPreventiveMeasures String?
+  resolutionTimeSpentMinutes   Int?
+
+  alert    Alert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  assignee User? @relation(fields: [assignedTo], references: [id])
+
+  @@map("alert_triage")
+}
+
+model AlertTimelineEntry {
+  id        Int      @id @default(autoincrement())
+  alertId   Int
+  timestamp DateTime @default(now())
+  action    String
+  user      String
+  details   String?
+  note      String?
+
+  alert Alert @relation(fields: [alertId], references: [id])
+
+  @@map("alert_timeline")
+}
+
+model User {
+  id          String @id @default(cuid())
+  name        String
+  role        String
+  company     String
+  bearerToken String @unique
+
+  triagedAlerts AlertTriage[]
+
+  @@map("users")
+}
