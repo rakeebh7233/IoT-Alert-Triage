@@ -20,6 +20,7 @@ model Device {
 
   readings SensorReading[]
   alerts   Alert[]
+  recoveries Recovery[]
 
   @@map("devices")
 }
@@ -31,12 +32,28 @@ model SensorReading {
   inputName         String
   inputValue        Float
   breachesThreshold Boolean  @default(false)
-  isDuplicate       Boolean  @default(false)
 
   device Device @relation(fields: [deviceId], references: [id])
 
   @@index([deviceId, timestampUtc])
   @@map("sensor_readings")
+}
+
+model Recovery {
+  id           Int      @id @default(autoincrement())
+  deviceId     String
+  timestampUtc DateTime
+  alertType    String
+  severity     String
+  threshold    Float?
+  readingValue Float?
+  readingName  String?
+
+  device       Device   @relation(fields: [deviceId], references: [id])
+
+  @@index([deviceId, timestampUtc])
+  @@index([deviceId, alertType])
+  @@map("recoveries")
 }
 
 model Alert {

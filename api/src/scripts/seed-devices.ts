@@ -5,12 +5,7 @@ import { prisma } from "../lib/prisma.js";
 
 async function main() {
 
-  const filePath = path.join(
-    process.cwd(),
-    "..",
-    "data",
-    "devices.json"
-  );
+  const filePath = path.join(process.cwd(),"..", "data", "devices.json");
 
   const raw = await fs.readFile(filePath, "utf-8");
 
