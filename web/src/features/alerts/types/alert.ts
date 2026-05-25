@@ -1,13 +1,7 @@
+import { Device } from "../../devices/types/device";
+
 export type AlertStatus = "new" | "acknowledged" | "resolved" | "dismissed";
 export type AlertSeverity = "critical" | "warning";
-
-export interface Device {
-  id: string;
-  name: string;
-  location: string;
-  company: string;
-  timezone: string;
-}
 
 export interface AlertTriage {
   id: number;
@@ -29,6 +23,7 @@ export interface Alert {
   readingName: string | null;
   device: Device;
   triage: AlertTriage | null;
+  timeline?: AlertTimelineEntry[];
 }
 
 export interface GetAlertsParams {
@@ -39,4 +34,14 @@ export interface GetAlertsParams {
   q?: string;
   from?: string;
   to?: string;
+}
+
+export interface AlertTimelineEntry {
+  id: number;
+  alertId: number;
+  timestamp: string;
+  action: string;
+  user: string;
+  details: string | null;
+  note: string | null;
 }

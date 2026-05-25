@@ -24,11 +24,32 @@ export const alertsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Alerts"],
     }),
+
+    resolveAlert: builder.mutation<Alert, number>({
+      query: (id) => ({
+        url: `/alerts/${id}/resolve`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Alerts"],
+    }),
+    
+    addAlertNote: builder.mutation<Alert, { alertId: number; note: string }>({
+      query: ({ alertId, note }) => ({
+        url: `/alerts/${alertId}/notes`,
+        method: "POST",
+        body: { note },
+      }),
+      invalidatesTags: ["Alerts"],
+    }),
   }),
 });
+
+
 
 export const {
   useGetAlertsQuery,
   useGetAlertByIdQuery,
   useAcknowledgeAlertMutation,
+  useResolveAlertMutation,
+  useAddAlertNoteMutation,
 } = alertsApi;
