@@ -7,11 +7,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
     "start": "node dist/server.js",
     "seed:devices": "tsx src/scripts/seed-devices.ts",
     "seed:users": "tsx src/scripts/seed-users.ts",
-    "ingest": "tsx src/scripts/ingestion.service.ts"
+    "ingest": "tsx src/scripts/ingestion.service.ts",
+    "setup:data": "npm run seed:devices && npm run seed:users && npm run ingest"
   },
   "keywords": [],
   "author": "",
