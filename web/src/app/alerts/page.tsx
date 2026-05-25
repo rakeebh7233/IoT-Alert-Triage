@@ -4,11 +4,13 @@ import { useGetAlertsQuery, useAcknowledgeAlertMutation } from '@/features/alert
 import { useGetDevicesQuery } from '@/features/devices/api/devicesApi';
 import { Container, Typography, Paper, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningIcon from '@mui/icons-material/Warning';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
+import { FilterControls } from '@/components/FilterControls';
 import { useRouter } from "next/navigation";
 import { SummaryBar } from '@/components/SummaryBar';
-import { Device } from '@/features/devices/types/device';
-import { FilterControls } from '@/components/FilterControls';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import {AssignAlertDialog} from "../../components/AssignAlertDialog";
 
 
 export default function AlertsPage() {
@@ -19,7 +21,7 @@ export default function AlertsPage() {
     const [sortBy, setSortBy] = useState<"severity" | "time" | "status">("time");
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [acknowledgeAlert] = useAcknowledgeAlertMutation();
-
+    const [assignAlertId, setAssignAlertId] = useState<number | null>(null);
     const { data: summaryAlerts = [] } = useGetAlertsQuery();
 
     const { data: alerts = [], isLoading, error } = useGetAlertsQuery({
@@ -29,8 +31,9 @@ export default function AlertsPage() {
         device_id: deviceId || undefined,
     });
 
-    const { data: devices } = useGetDevicesQuery(); 
+    const { data: devices } = useGetDevicesQuery();
     const router = useRouter();
+
 
     return (
         <Container maxWidth="xl" sx={{ mt: 4 }}>
@@ -80,18 +83,44 @@ export default function AlertsPage() {
                                 <TableCell>{alert.device?.name} ({alert.device?.location})</TableCell>
                                 <TableCell>{new Date(alert.timestampUtc).toLocaleTimeString()}</TableCell>
                                 <TableCell>{alert.triage?.status || 'New'}</TableCell>
-                                <TableCell>{alert.triage?.assignedTo || 'Unassigned'}</TableCell>
+                                <TableCell>{alert.triage?.assignee?.name ?? "Unassigned"}</TableCell>
                                 <TableCell>
-                                    <IconButton 
-                                        size="small"
-                                        onClick={() => acknowledgeAlert(alert.id)}
-                                        disabled={alert.triage?.status === 'acknowledged' || alert.triage?.status === 'resolved'}
-                                    >
-                                        <CheckCircleIcon />
-                                    </IconButton>
+                                    {alert.triage?.status === "new" && (
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => acknowledgeAlert(alert.id)}
+                                        >
+                                            <WarningIcon color="secondary" />
+                                        </IconButton>
+                                    )}
+
+                                    {alert.triage?.status === "acknowledged" && (
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => router.push(`/alerts/${alert.id}?resolve=true`)}
+                                        >
+                                            <DoneAllIcon color="action" />
+                                        </IconButton>
+                                    )}
+
+                                    {alert.triage?.status === "resolved" && (
+                                        <IconButton size="small" >
+                                            <DoneAllIcon color="success" />
+                                        </IconButton>
+                                    )}
+
                                     <IconButton
                                         size="small"
-                                        onClick={() => router.push(`/alerts/${alert.id}`)}>
+                                        onClick={() => setAssignAlertId(alert.id)}
+                                        disabled={alert.triage?.status === "resolved"}
+                                    >
+                                        <PersonAddIcon color={alert.triage?.status === "resolved" ? 'disabled' : 'primary'} />
+                                    </IconButton>
+
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => router.push(`/alerts/${alert.id}`)}
+                                    >
                                         <VisibilityIcon />
                                     </IconButton>
                                 </TableCell>
@@ -100,6 +129,16 @@ export default function AlertsPage() {
                     </TableBody>
                 </Table>
             </TableContainer>
+            {assignAlertId && (
+                <AssignAlertDialog
+                    alertId={assignAlertId}
+                    currentAssigneeId={
+                        alerts.find((a) => a.id === assignAlertId)?.triage?.assignedTo
+                    }
+                    open={Boolean(assignAlertId)}
+                    onClose={() => setAssignAlertId(null)}
+                />
+            )}
         </Container>
     );
 }

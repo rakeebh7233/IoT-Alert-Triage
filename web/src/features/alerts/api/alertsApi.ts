@@ -1,5 +1,5 @@
 import { baseApi } from "@/lib/api/baseApi";
-import type { Alert, GetAlertsParams } from "../types/alert";
+import type { Alert, GetAlertsParams, ResolveAlertRequest, AssignAlertRequest } from "../types/alert";
 
 export const alertsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -24,14 +24,6 @@ export const alertsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Alerts"],
     }),
-
-    resolveAlert: builder.mutation<Alert, number>({
-      query: (id) => ({
-        url: `/alerts/${id}/resolve`,
-        method: "POST",
-      }),
-      invalidatesTags: ["Alerts"],
-    }),
     
     addAlertNote: builder.mutation<Alert, { alertId: number; note: string }>({
       query: ({ alertId, note }) => ({
@@ -41,9 +33,26 @@ export const alertsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Alerts"],
     }),
+
+    resolveAlert: builder.mutation<Alert, ResolveAlertRequest>({
+      query: ({ alertId, ...body }) => ({
+        url: `/alerts/${alertId}/resolve`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Alerts"],
+    }),
+
+    assignAlert: builder.mutation<Alert, AssignAlertRequest>({
+      query: ({ alertId, ...body }) => ({
+        url: `/alerts/${alertId}/assign`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Alerts"],
+    }),
   }),
 });
-
 
 
 export const {
@@ -52,4 +61,5 @@ export const {
   useAcknowledgeAlertMutation,
   useResolveAlertMutation,
   useAddAlertNoteMutation,
+  useAssignAlertMutation,
 } = alertsApi;

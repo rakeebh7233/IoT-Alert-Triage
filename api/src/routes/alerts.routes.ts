@@ -81,7 +81,16 @@ router.get("/", async (req, res) => {
         where,
         include: {
             device: true,
-            triage: true,
+            triage: {
+                include: {
+                    assignee: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
+                    },
+                },
+            },
         },
         orderBy: {
             timestampUtc: "desc",

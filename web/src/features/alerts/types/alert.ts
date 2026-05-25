@@ -10,6 +10,9 @@ export interface AlertTriage {
   assignedTo: string | null;
   acknowledgedAt: string | null;
   resolvedAt: string | null;
+  assignee?: {
+    name: string;
+  }
 }
 
 export interface Alert {
@@ -45,3 +48,18 @@ export interface AlertTimelineEntry {
   details: string | null;
   note: string | null;
 }
+
+export type ResolveAlertRequest = {
+  alertId: number;
+  resolution_type: string;
+  root_cause: string;
+  action_taken: string;
+  preventive_measures?: string;
+  time_spent_minutes?: number;
+};
+
+export type AssignAlertRequest = {
+  alertId: number;
+  assignee_id: string;
+  note?: string;
+};

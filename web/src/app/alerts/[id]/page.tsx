@@ -1,31 +1,29 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { useGetAlertByIdQuery, useAcknowledgeAlertMutation, useAddAlertNoteMutation, useResolveAlertMutation} from "@/features/alerts/api/alertsApi";
+import { useGetAlertByIdQuery, useAcknowledgeAlertMutation, useAddAlertNoteMutation, useResolveAlertMutation } from "@/features/alerts/api/alertsApi";
 import { Container, Typography, Paper, Box, Chip, Button, TextField, Stack, Divider, CircularProgress, Alert as MuiAlert } from "@mui/material";
+import { ResolveAlertDialog } from "@/components/ResolveAlertDialog";
+import { AssignAlertDialog } from "@/components/AssignAlertDialog";
 
 export default function AlertDetailPage() {
     const { id } = useParams<{ id: string }>();
     const alertId = Number(id);
     const [note, setNote] = useState("");
 
-    const {
-        data: alert,
-        isLoading: isAlertLoading,
-        isError,
-    } = useGetAlertByIdQuery(alertId, {skip: Number.isNaN(alertId),});
-
+    const { data: alert } = useGetAlertByIdQuery(alertId);
     const [acknowledgeAlert, { isLoading: isAcknowledging }] = useAcknowledgeAlertMutation();
-    const [resolveAlert] = useResolveAlertMutation();
     const [addAlertNote, { isLoading: isSubmittingNote }] = useAddAlertNoteMutation();
+
+    const searchParams = useSearchParams();
+    const shouldOpenResolve = searchParams.get("resolve") === "true";
+    const [isResolveOpen, setIsResolveOpen] = useState(shouldOpenResolve);
+
+    const [isAssignOpen, setIsAssignOpen] = useState(false);
 
     async function handleAcknowledge() {
         await acknowledgeAlert(alertId)
-    }
-
-    async function handleResolve() {
-        // await resolveAlert(alertId)
     }
 
     async function handleSubmitNote() {
@@ -40,7 +38,7 @@ export default function AlertDetailPage() {
         setNote("");
     }
 
-    if (isError || !alert) {
+    if (!alert) {
         return (
             <Container sx={{ mt: 4 }}>
                 <MuiAlert severity="error">Alert not found.</MuiAlert>
@@ -54,7 +52,7 @@ export default function AlertDetailPage() {
     return (
         <Container maxWidth="lg" sx={{ mt: 4 }}>
             <Paper sx={{ p: 3, mb: 3 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2,}} >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, }} >
                     <Typography variant="h4">{alert.alertType}</Typography>
                     <Box>
                         <Chip
@@ -90,15 +88,20 @@ export default function AlertDetailPage() {
                     )}
 
                     {status === "acknowledged" && (
-                        <Button 
+                        <Button
                             variant="contained"
                             color="success"
-                            onClick={handleResolve}>
+                            onClick={() => setIsResolveOpen(true)}
+                        >
                             Resolve
                         </Button>
                     )}
 
-                    <Button variant="outlined" disabled={status === "resolved"}>
+                    <Button
+                        variant="outlined"
+                        disabled={status === "resolved" || alert.triage?.assignedTo != null }
+                        onClick={() => setIsAssignOpen(true)}
+                    >
                         Assign
                     </Button>
                 </Box>
@@ -113,8 +116,13 @@ export default function AlertDetailPage() {
                     Current Assignee: {alert.triage?.assignedTo ?? "Unassigned"}
                 </Typography>
 
-                <Button sx={{ mt: 1 }} disabled={status === "resolved"}>
-                    Change
+                <Button
+                    sx={{ mt: 1 }}
+                    variant="outlined"
+                    disabled={status === "resolved"}
+                    onClick={() => setIsAssignOpen(true)}
+                >
+                    Change Assignee
                 </Button>
             </Paper>
 
@@ -174,6 +182,19 @@ export default function AlertDetailPage() {
                     </Button>
                 </Box>
             </Paper>
+
+            <ResolveAlertDialog
+                alertId={alertId}
+                open={isResolveOpen}
+                onClose={() => setIsResolveOpen(false)}
+            />
+
+            <AssignAlertDialog
+                alertId={alertId}
+                currentAssigneeId={alert.triage?.assignedTo}
+                open={isAssignOpen}
+                onClose={() => setIsAssignOpen(false)}
+            />
         </Container>
     );
 }
