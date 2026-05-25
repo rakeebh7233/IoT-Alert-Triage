@@ -93,7 +93,7 @@ async function ingestSensors() {
                 deviceId: device.id,
                 timestampUtc: new Date(validMsg.timestamp),
                 alertType: alertType,
-                severity: "unknown",
+                severity: "warning",
                 threshold: threshold ?? null,
                 readingValue: input.input_value,
                 readingName: input.input_name,

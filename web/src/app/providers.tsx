@@ -1,23 +1,21 @@
 'use client';
 
-import ReduxProvider from '@/lib/store/provider';
-
+import { StoreProvider } from '@/lib/store/provider';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useState, useMemo } from 'react';
+import { getTheme } from '@/lib/theme/theme';
 
-import { theme } from '@/lib/theme/theme';
+export default function Providers({ children}: { children: React.ReactNode;}) {
+  const [mode, setMode] = useState<'light' | 'dark'>('light');
+  const theme = useMemo(() => getTheme(mode), [mode]);
 
-export default function Providers({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
   return (
-    <ReduxProvider>
+    <StoreProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         {children}
       </ThemeProvider>
-    </ReduxProvider>
+    </StoreProvider>
   );
 }

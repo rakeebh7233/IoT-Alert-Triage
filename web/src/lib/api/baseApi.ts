@@ -1,11 +1,24 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const baseApi = createApi({
-  reducerPath: 'api',
+  reducerPath: "api",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:8000/api',
+    baseUrl:
+      process.env.NEXT_PUBLIC_API_URL ??
+      "http://localhost:4000",
+
+    prepareHeaders: (headers) => {
+      headers.set(
+        "Authorization",
+        "Bearer brookfield-manager-token"
+      );
+
+      return headers;
+    },
   }),
+
+  tagTypes: ["Alerts", "Devices", "Users"],
 
   endpoints: () => ({}),
 });
